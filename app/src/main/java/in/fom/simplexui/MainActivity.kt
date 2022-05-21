@@ -3,22 +3,24 @@ package `in`.fom.simplexui
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import `in`.fom.simplexui.ui.theme.SimplexUiTheme
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.Button
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -30,7 +32,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colors.background
                 ) {
-                    Conversation(listOf("Vasek", "Bober", "Slava"))
+                    FunctionView()
                 }
             }
         }
@@ -38,65 +40,25 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
+fun FunctionView(model: MainViewModel = viewModel()) {
+    val coefficients by model.mutableVector.collectAsState(emptyList())
+    LazyRow {
+        itemsIndexed(coefficients) { index: Int, item: Double ->
+            Term(index, item) { model.setFunctionCoefficient(index, it.toDouble()) }
+        }
+    }
 }
 
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
     SimplexUiTheme {
-        Sign()
     }
 }
 
 @Composable
-fun MessageCard(msg: String) {
-    // Add padding around our message
-    Row(modifier = Modifier.padding(all = 8.dp)) {
-        Image(
-            painter = painterResource(R.drawable.ic_launcher_background),
-            contentDescription = "Contact profile picture",
-            modifier = Modifier
-                // Set image size to 40 dp
-                .size(40.dp)
-                // Clip image to be shaped as a circle
-                .clip(CircleShape)
-        )
-
-        // Add a horizontal space between the image and the column
-        Spacer(modifier = Modifier.width(8.dp))
-
-        Column {
-            Text(text = msg)
-            // Add a vertical space between the author and message texts
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(text = msg)
-        }
-    }
-}
-
-@Composable
-fun Conversation(messages: List<String>) {
-    LazyColumn {
-        items(messages) { message ->
-            MessageCard(message)
-        }
-    }
-}
-
-@Preview
-@Composable
-fun PreviewConversation() {
-    SimplexUiTheme {
-        Conversation(listOf("Vasek", "Bober", "Slava"))
-    }
-}
-
-@Composable
-fun Sign() {
+fun Sign(signs: List<String>) {
     var index = 0
-    val signs = listOf("<", "=", ">")
     var signState by remember { mutableStateOf(signs[index]) }
     Button(onClick = {
         index = (index + 1) % signs.size
@@ -107,17 +69,30 @@ fun Sign() {
 }
 
 @Composable
-fun InequalitySign() {
+fun AlgebraSign() {
+    Sign(listOf("-", "+"))
 }
 
 @Composable
-fun NumberField() {
+fun InequalitySign() {
+    Sign(listOf("<", "=", ">"))
+}
+
+@Composable
+fun NumberField(value: Double, onEdit: (String) -> Unit) {
+    BasicTextField(value.toString(), onEdit, Modifier.defaultMinSize(20.dp))
 }
 
 @Composable
 fun VariableX(index: Int) {
+    Text("X$index")
 }
 
 @Composable
-fun Term(row: Int, index: Int, onEdit: (Double) -> Unit) {
+fun Term(index: Int, value: Double, onEdit: (String) -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        AlgebraSign()
+        NumberField(value, onEdit)
+        VariableX(index = index)
+    }
 }
