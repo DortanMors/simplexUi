@@ -2,19 +2,27 @@ package `in`.fom.simplexui
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.launch
 
 class MainViewModel: ViewModel() {
 
-    val mutableSize: MutableStateFlow<Int> = MutableStateFlow(1)
+    companion object {
+        const val DEFAULT_COEFFICIENT = 0.0
+    }
 
-    val mutableVector: MutableStateFlow<MutableList<Double>> = MutableStateFlow(mutableListOf(1.0))
+    val mutableVector: MutableStateFlow<MutableList<String>> = MutableStateFlow(mutableListOf("1.0"))
 
-    fun setFunctionCoefficient(index: Int, value: Double) {
-        viewModelScope.launch { mutableVector.emit(mutableVector.value.toMutableList().also { it[index] = value }) }
+    fun setFunctionCoefficient(index: Int, value: String) {
+        mutableVector.value = (mutableVector.value.toMutableList().also { it[index] = value })
         Log.d("HARDCODE", mutableVector.value.toString())
+    }
+
+    fun putArg(value: String = "$DEFAULT_COEFFICIENT") {
+       mutableVector.value = (mutableVector.value.toMutableList().apply { add(value) })
+    }
+
+    fun dropArg() {
+        mutableVector.value = (mutableVector.value.toMutableList().apply { removeLast() })
     }
 
 }
