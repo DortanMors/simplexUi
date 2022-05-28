@@ -3,8 +3,10 @@ package `in`.fom.simplexui
 import `in`.fom.simplexui.model.InequalityRowModel
 import `in`.fom.simplexui.model.TermModel
 import `in`.fom.simplexui.ui.theme.SimplexUiTheme
+import `in`.fom.simplexui.utils.Defaults
 import `in`.fom.simplexui.utils.Defaults.defaultFunctionTerms
 import `in`.fom.simplexui.utils.Defaults.defaultInequalities
+import `in`.fom.simplexui.utils.nextAddSign
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -16,16 +18,10 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.Button
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -131,34 +127,42 @@ fun TermLineView(viewModel: MainViewModel = viewModel()) {
     }
 }
 
+// Preview for test
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-//    SimplexUiTheme {
-//        Surface(
-//            modifier = Modifier
-//                .fillMaxSize()
-//                .padding(8.dp),
-//            color = MaterialTheme.colors.background
-//        ) {
-//            Column {
-//                Term(0, "1.2") {}
-//                SimplexView()
-//            }
-//        }
-//    }
+    SimplexUiTheme {
+        Surface(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(8.dp),
+            color = MaterialTheme.colors.background
+        ) {
+            var mutableText by remember { mutableStateOf(Defaults.WEIGHT.toString()) }
+            var mutableSign by remember { mutableStateOf(Defaults.defaultAddSign) }
+            Column {
+                Term(
+                    index = 0,
+                    value = mutableText,
+                    sign = mutableSign,
+                    onTap = { mutableSign = mutableSign.nextAddSign() },
+                    onEdit = { newValue -> mutableText = newValue }
+                )
+            }
+        }
+    }
 }
 
 @Composable
 fun AlgebraSign(value: String, onTap: () -> Unit) {
     Box(modifier = Modifier
         .height(IntrinsicSize.Min)
-        .background(color = Color.Magenta, shape = CircleShape)
+        .background(color = MaterialTheme.colors.primary, shape = CircleShape)
         .defaultMinSize(40.dp, 40.dp)
         .padding(horizontal = 8.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = value, modifier = Modifier.clickable { onTap() })
+        Text(text = value, color = MaterialTheme.colors.background, modifier = Modifier.clickable { onTap() })
     }
 }
 
@@ -176,7 +180,7 @@ fun StringField(value: String, onEdit: (String) -> Unit) {
 
 @Composable
 fun VariableX(index: Int) {
-    Text("X$index", color = Color.Green)
+    Text("X$index", color = MaterialTheme.colors.primarySurface)
 }
 
 @Composable
