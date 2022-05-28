@@ -23,6 +23,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -49,25 +50,25 @@ class MainActivity : ComponentActivity() {
 fun SimplexView(viewModel: MainViewModel = viewModel()) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(text = "f(X̂, Ĉ) =")
+            Text(text = stringResource(R.string.function))
             Spacer(modifier = Modifier.width(8.dp))
             TermLineView(viewModel)
         }
         Row {
             Button(onClick = { viewModel.putArg() }) {
-                Text(text = "+ arg")
+                Text(text = stringResource(R.string.plus_arg))
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(onClick = { viewModel.dropArg() }) {
-                Text(text = "- arg")
+                Text(text = stringResource(R.string.minus_arg))
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(onClick = { viewModel.putInequalityRow() }) {
-                Text(text = "+ inequality")
+                Text(text = stringResource(R.string.plus_inequality))
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(onClick = { viewModel.dropInequalityRow() }) {
-                Text(text = "- inequality")
+                Text(text = stringResource(R.string.minus_inequality))
             }
         }
         BoundsMatrixView(viewModel)
