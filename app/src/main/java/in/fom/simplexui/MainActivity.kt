@@ -6,9 +6,17 @@ import androidx.activity.compose.setContent
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import `in`.fom.simplexui.ui.theme.SimplexUiTheme
+import `in`.fom.simplexui.utils.Defaults.defaultBoundsMatrix
+import `in`.fom.simplexui.utils.Defaults.defaultBoundsSigns
+import `in`.fom.simplexui.utils.Defaults.defaultBoundsVector
+import `in`.fom.simplexui.utils.Defaults.defaultFunctionSigns
+import `in`.fom.simplexui.utils.Defaults.defaultFunctionWeights
+import `in`.fom.simplexui.utils.Defaults.defaultInequalitySigns
+import `in`.fom.simplexui.utils.Defaults.defaultMatrixSigns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
@@ -40,30 +48,88 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun SimplexView(viewModel: MainViewModel = viewModel()) {
     Column {
-        FunctionView()
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text = "f(X̂, Ĉ) =")
+            Spacer(modifier = Modifier.width(8.dp))
+            TermLineView(viewModel)
+        }
         Row {
             Button(onClick = { viewModel.putArg() }) {
                 Text(text = "+ arg")
             }
+            Spacer(modifier = Modifier.width(8.dp))
             Button(onClick = { viewModel.dropArg() }) {
                 Text(text = "- arg")
+            }
+        }
+        InequalitiesView(viewModel)
+    }
+}
+
+@Composable
+fun InequalitiesView(viewModel: MainViewModel = viewModel()) {
+    Column {
+        Row {
+            Button(onClick = { viewModel.putInequalityRow() }) {
+                Text(text = "+ inequality")
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = { viewModel.dropInequalityRow() }) {
+                Text(text = "- inequality")
+            }
+        }
+        BoundsMatrixView(viewModel)
+    }
+}
+
+@Composable
+fun BoundsMatrixView(viewModel: MainViewModel = viewModel()) {
+    val matrix by viewModel.boundsMatrix.collectAsState(defaultBoundsMatrix)
+    val matrixSigns by viewModel.matrixSigns.collectAsState(defaultMatrixSigns)
+    val signs by viewModel.inequalitySigns.collectAsState(defaultInequalitySigns)
+    val bounds by viewModel.boundsVector.collectAsState(defaultBoundsVector)
+    val boundsSigns by viewModel.boundsSigns.collectAsState(defaultBoundsSigns)
+    LazyColumn {
+        itemsIndexed(matrix) { rowIndex, line ->
+            LazyRow {
+                itemsIndexed(line) { columnIndex, boundWeight ->
+                    Term(
+                        index = columnIndex,
+                        sign = matrixSigns[rowIndex][columnIndex],
+                        value = boundWeight,
+                        onTap = { viewModel.switchMatrixSign(rowIndex, columnIndex) },
+                        onEdit = { newValue -> viewModel.setBoundsWeight(rowIndex, columnIndex, newValue) }
+                    )
+                }
+                item {
+                    AlgebraSign(value = signs[rowIndex]) { viewModel.switchInequalitySign(rowIndex) }
+                }
+                item {
+                    Term(
+                        sign = boundsSigns[rowIndex],
+                        value = bounds[rowIndex],
+                        onTap = { viewModel.switchBoundsSign(rowIndex) },
+                        onEdit = { newValue -> viewModel.setBound(rowIndex, newValue) }
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun FunctionView(viewModel: MainViewModel = viewModel()) {
-    val coefficients by viewModel.mutableVector.collectAsState(emptyList())
+fun TermLineView(viewModel: MainViewModel = viewModel()) {
+    val coefficients by viewModel.vectorWeights.collectAsState(defaultFunctionWeights)
+    val signs by viewModel.functionSigns.collectAsState(defaultFunctionSigns)
     LazyRow(verticalAlignment = Alignment.CenterVertically) {
-        item {
-            Text(text = "f(X̂, Ĉ) =")
-        }
-        item {
-            Spacer(modifier = Modifier.width(8.dp))
-        }
-        itemsIndexed(coefficients) { index: Int, item: String ->
-            Term(index, item) { viewModel.setFunctionCoefficient(index, it) }
+        itemsIndexed(coefficients) { i: Int, item: String ->
+            Term(
+                index = i,
+                value = item,
+                sign = signs[i],
+                onTap = { viewModel.switchFunctionSign(i) },
+                onEdit = { newValue -> viewModel.setWeight(i, newValue) }
+            )
         }
     }
 }
@@ -71,55 +137,39 @@ fun FunctionView(viewModel: MainViewModel = viewModel()) {
 @Preview(showBackground = true)
 @Composable
 fun DefaultPreview() {
-    SimplexUiTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colors.background
-        ) {
-            Column {
-                Term(0, "1.2") {}
-                SimplexView()
-            }
-        }
-    }
+//    SimplexUiTheme {
+//        Surface(
+//            modifier = Modifier
+//                .fillMaxSize()
+//                .padding(8.dp),
+//            color = MaterialTheme.colors.background
+//        ) {
+//            Column {
+//                Term(0, "1.2") {}
+//                SimplexView()
+//            }
+//        }
+//    }
 }
 
 @Composable
-fun Sign(signs: List<String>) {
-    var index = 0
-    var signState by remember { mutableStateOf(signs[index]) }
-    Box(modifier = Modifier.height(IntrinsicSize.Min)
-            .background(color = Color.Magenta, shape = CircleShape)
-            .defaultMinSize(40.dp, 40.dp)
-            .padding(horizontal = 8.dp),
+fun AlgebraSign(value: String, onTap: () -> Unit) {
+    Box(modifier = Modifier
+        .height(IntrinsicSize.Min)
+        .background(color = Color.Magenta, shape = CircleShape)
+        .defaultMinSize(40.dp, 40.dp)
+        .padding(horizontal = 8.dp),
         contentAlignment = Alignment.Center
     ) {
-        Text(text = signState, modifier = Modifier.clickable {
-                index = (index + 1) % signs.size
-                signState = signs[index]
-            }
-        )
+        Text(text = value, modifier = Modifier.clickable { onTap() })
     }
-}
-
-@Composable
-fun AlgebraSign() {
-    Sign(listOf("-", "+"))
-}
-
-@Composable
-fun InequalitySign() {
-    Sign(listOf("<", "=", ">"))
-}
-
-@Composable
-fun NumberField(value: Double, onEdit: (String) -> Unit) {
-    StringField(value.toString(), onEdit)
 }
 
 @Composable
 fun StringField(value: String, onEdit: (String) -> Unit) {
-    BasicTextField(value, onEdit,
+    BasicTextField(
+        value,
+        onEdit,
         Modifier
             .width(IntrinsicSize.Min)
             .defaultMinSize(minWidth = 8.dp)
@@ -133,11 +183,11 @@ fun VariableX(index: Int) {
 }
 
 @Composable
-fun Term(index: Int, value: String, onEdit: (String) -> Unit) {
+fun Term(sign: String, value: String, index: Int? = null, onTap: () -> Unit, onEdit: (String) -> Unit) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        AlgebraSign()
+        AlgebraSign(sign, onTap)
         StringField(value, onEdit)
-        VariableX(index = index)
+        index?.let { VariableX(index = it) }
         Spacer(modifier = Modifier.width(8.dp))
     }
 }
