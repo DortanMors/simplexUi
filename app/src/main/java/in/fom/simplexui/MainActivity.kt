@@ -1,18 +1,13 @@
 package `in`.fom.simplexui
 
+import `in`.fom.simplexui.model.InequalityRowModel
+import `in`.fom.simplexui.model.TermModel
+import `in`.fom.simplexui.ui.theme.SimplexUiTheme
+import `in`.fom.simplexui.utils.Defaults.defaultFunctionTerms
+import `in`.fom.simplexui.utils.Defaults.defaultInequalities
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import `in`.fom.simplexui.ui.theme.SimplexUiTheme
-import `in`.fom.simplexui.utils.Defaults.defaultBoundsMatrix
-import `in`.fom.simplexui.utils.Defaults.defaultBoundsSigns
-import `in`.fom.simplexui.utils.Defaults.defaultBoundsVector
-import `in`.fom.simplexui.utils.Defaults.defaultFunctionSigns
-import `in`.fom.simplexui.utils.Defaults.defaultFunctionWeights
-import `in`.fom.simplexui.utils.Defaults.defaultInequalitySigns
-import `in`.fom.simplexui.utils.Defaults.defaultMatrixSigns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -21,10 +16,17 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.material.Button
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -84,30 +86,26 @@ fun InequalitiesView(viewModel: MainViewModel = viewModel()) {
 
 @Composable
 fun BoundsMatrixView(viewModel: MainViewModel = viewModel()) {
-    val matrix by viewModel.boundsMatrix.collectAsState(defaultBoundsMatrix)
-    val matrixSigns by viewModel.matrixSigns.collectAsState(defaultMatrixSigns)
-    val signs by viewModel.inequalitySigns.collectAsState(defaultInequalitySigns)
-    val bounds by viewModel.boundsVector.collectAsState(defaultBoundsVector)
-    val boundsSigns by viewModel.boundsSigns.collectAsState(defaultBoundsSigns)
+    val matrix by viewModel.inequalities.collectAsState(defaultInequalities())
     LazyColumn {
-        itemsIndexed(matrix) { rowIndex, line ->
+        itemsIndexed(matrix) { rowIndex: Int, line: InequalityRowModel ->
             LazyRow {
-                itemsIndexed(line) { columnIndex, boundWeight ->
+                itemsIndexed(line.terms) { columnIndex, termModel ->
                     Term(
                         index = columnIndex,
-                        sign = matrixSigns[rowIndex][columnIndex],
-                        value = boundWeight,
+                        sign = termModel.sign,
+                        value = termModel.value,
                         onTap = { viewModel.switchMatrixSign(rowIndex, columnIndex) },
                         onEdit = { newValue -> viewModel.setBoundsWeight(rowIndex, columnIndex, newValue) }
                     )
                 }
                 item {
-                    AlgebraSign(value = signs[rowIndex]) { viewModel.switchInequalitySign(rowIndex) }
+                    AlgebraSign(value = line.sign) { viewModel.switchInequalitySign(rowIndex) }
                 }
                 item {
                     Term(
-                        sign = boundsSigns[rowIndex],
-                        value = bounds[rowIndex],
+                        sign = line.boundSign,
+                        value = line.bound,
                         onTap = { viewModel.switchBoundsSign(rowIndex) },
                         onEdit = { newValue -> viewModel.setBound(rowIndex, newValue) }
                     )
@@ -119,14 +117,13 @@ fun BoundsMatrixView(viewModel: MainViewModel = viewModel()) {
 
 @Composable
 fun TermLineView(viewModel: MainViewModel = viewModel()) {
-    val coefficients by viewModel.vectorWeights.collectAsState(defaultFunctionWeights)
-    val signs by viewModel.functionSigns.collectAsState(defaultFunctionSigns)
+    val coefficients by viewModel.functionTerms.collectAsState(defaultFunctionTerms())
     LazyRow(verticalAlignment = Alignment.CenterVertically) {
-        itemsIndexed(coefficients) { i: Int, item: String ->
+        itemsIndexed(coefficients) { i: Int, item: TermModel ->
             Term(
                 index = i,
-                value = item,
-                sign = signs[i],
+                value = item.value,
+                sign = item.sign,
                 onTap = { viewModel.switchFunctionSign(i) },
                 onEdit = { newValue -> viewModel.setWeight(i, newValue) }
             )
