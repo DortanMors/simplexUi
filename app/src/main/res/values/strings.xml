@@ -1,3 +1,9 @@
 <resources>
-    <string name="app_name">SimplexUi</string>
+    <string name="app_name" translatable="false">SimplexUi</string>
+    <string name="function" translatable="false">f(X̂, Ĉ) =</string>
+    <string name="plus_arg">+ arg</string>
+    <string name="minus_arg">- arg</string>
+    <string name="plus_inequality">+ inequality</string>
+    <string name="minus_inequality">- inequality</string>
+    <string name="solve">Solve</string>
 </resources>

@@ -1,22 +1,27 @@
 package `in`.fom.simplexui
 
+import `in`.fom.simplexui.model.InequalityRowModel
+import `in`.fom.simplexui.model.TermModel
+import `in`.fom.simplexui.ui.theme.SimplexUiTheme
+import `in`.fom.simplexui.ui.view.AlgebraSign
+import `in`.fom.simplexui.ui.view.Term
+import `in`.fom.simplexui.utils.Defaults.defaultFunctionTerms
+import `in`.fom.simplexui.utils.Defaults.defaultInequalities
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import `in`.fom.simplexui.ui.theme.SimplexUiTheme
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
@@ -27,8 +32,10 @@ class MainActivity : ComponentActivity() {
             SimplexUiTheme {
                 // A surface container using the 'background' color from the theme
                 Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(8.dp)
+                        .background(MaterialTheme.colors.background)
                 ) {
                     SimplexView()
                 }
@@ -39,105 +46,90 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun SimplexView(viewModel: MainViewModel = viewModel()) {
-    Column {
-        FunctionView()
+    Column(modifier = Modifier.fillMaxSize()) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(text = stringResource(R.string.function))
+            Spacer(modifier = Modifier.width(8.dp))
+            TermLineView(viewModel)
+        }
         Row {
             Button(onClick = { viewModel.putArg() }) {
-                Text(text = "+ arg")
+                Text(text = stringResource(R.string.plus_arg))
             }
-            Button(onClick = { viewModel.dropArg() }) {
-                Text(text = "- arg")
-            }
-        }
-    }
-}
-
-@Composable
-fun FunctionView(viewModel: MainViewModel = viewModel()) {
-    val coefficients by viewModel.mutableVector.collectAsState(emptyList())
-    LazyRow(verticalAlignment = Alignment.CenterVertically) {
-        item {
-            Text(text = "f(X̂, Ĉ) =")
-        }
-        item {
             Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = { viewModel.putInequalityRow() }) {
+                Text(text = stringResource(R.string.plus_inequality))
+            }
         }
-        itemsIndexed(coefficients) { index: Int, item: String ->
-            Term(index, item) { viewModel.setFunctionCoefficient(index, it) }
+        Row {
+            Button(onClick = { viewModel.dropArg() }) {
+                Text(text = stringResource(R.string.minus_arg))
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = { viewModel.dropInequalityRow() }) {
+                Text(text = stringResource(R.string.minus_inequality))
+            }
         }
+        BoundsMatrixView(viewModel)
     }
 }
 
-@Preview(showBackground = true)
 @Composable
-fun DefaultPreview() {
-    SimplexUiTheme {
-        Surface(
-            modifier = Modifier.fillMaxSize(),
-            color = MaterialTheme.colors.background
-        ) {
-            Column {
-                Term(0, "1.2") {}
-                SimplexView()
+fun BoundsMatrixView(viewModel: MainViewModel = viewModel()) {
+    val matrix by viewModel.inequalities.collectAsState(defaultInequalities())
+    Box {
+        LazyColumn {
+            itemsIndexed(matrix) { rowIndex: Int, line: InequalityRowModel ->
+                LazyRow {
+                    itemsIndexed(line.terms) { columnIndex, termModel ->
+                        Term(
+                            index = columnIndex,
+                            sign = termModel.sign,
+                            value = termModel.value,
+                            onTap = { viewModel.switchMatrixSign(rowIndex, columnIndex) },
+                            onEdit = { newValue ->
+                                viewModel.setBoundsWeight(
+                                    rowIndex,
+                                    columnIndex,
+                                    newValue
+                                )
+                            }
+                        )
+                    }
+                    item {
+                        AlgebraSign(value = line.sign) { viewModel.switchInequalitySign(rowIndex) }
+                    }
+                    item {
+                        Term(
+                            sign = line.boundSign,
+                            value = line.bound,
+                            onTap = { viewModel.switchBoundsSign(rowIndex) },
+                            onEdit = { newValue -> viewModel.setBound(rowIndex, newValue) }
+                        )
+                    }
+                }
+            }
+            item {
+                Button(onClick = { viewModel.solve() }, Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.solve))
+                }
             }
         }
     }
 }
 
 @Composable
-fun Sign(signs: List<String>) {
-    var index = 0
-    var signState by remember { mutableStateOf(signs[index]) }
-    Box(modifier = Modifier.height(IntrinsicSize.Min)
-            .background(color = Color.Magenta, shape = CircleShape)
-            .defaultMinSize(40.dp, 40.dp)
-            .padding(horizontal = 8.dp),
-        contentAlignment = Alignment.Center
-    ) {
-        Text(text = signState, modifier = Modifier.clickable {
-                index = (index + 1) % signs.size
-                signState = signs[index]
-            }
-        )
-    }
-}
-
-@Composable
-fun AlgebraSign() {
-    Sign(listOf("-", "+"))
-}
-
-@Composable
-fun InequalitySign() {
-    Sign(listOf("<", "=", ">"))
-}
-
-@Composable
-fun NumberField(value: Double, onEdit: (String) -> Unit) {
-    StringField(value.toString(), onEdit)
-}
-
-@Composable
-fun StringField(value: String, onEdit: (String) -> Unit) {
-    BasicTextField(value, onEdit,
-        Modifier
-            .width(IntrinsicSize.Min)
-            .defaultMinSize(minWidth = 8.dp)
-            .padding(horizontal = 8.dp, vertical = 8.dp)
-    )
-}
-
-@Composable
-fun VariableX(index: Int) {
-    Text("X$index", color = Color.Green)
-}
-
-@Composable
-fun Term(index: Int, value: String, onEdit: (String) -> Unit) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        AlgebraSign()
-        StringField(value, onEdit)
-        VariableX(index = index)
-        Spacer(modifier = Modifier.width(8.dp))
+fun TermLineView(viewModel: MainViewModel = viewModel()) {
+    val coefficients by viewModel.functionTerms.collectAsState(defaultFunctionTerms())
+    LazyRow(verticalAlignment = Alignment.CenterVertically) {
+        itemsIndexed(coefficients) { i: Int, item: TermModel ->
+            Term(
+                index = i,
+                value = item.value,
+                sign = item.sign,
+                onTap = { viewModel.switchFunctionSign(i) },
+                onEdit = { newValue -> viewModel.setWeight(i, newValue) }
+            )
+        }
     }
 }
