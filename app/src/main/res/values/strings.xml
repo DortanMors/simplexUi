@@ -5,4 +5,5 @@
     <string name="minus_arg">- arg</string>
     <string name="plus_inequality">+ inequality</string>
     <string name="minus_inequality">- inequality</string>
+    <string name="solve">Solve</string>
 </resources>

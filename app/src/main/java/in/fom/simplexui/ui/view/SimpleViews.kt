@@ -49,7 +49,7 @@ fun StringField(value: String, onEdit: (String) -> Unit) {
 fun AlgebraSign(value: String, onTap: () -> Unit) {
     Box(modifier = Modifier
         .height(IntrinsicSize.Min)
-        .background(color = MaterialTheme.colors.primary, shape = CircleShape)
+        .background(color = MaterialTheme.colors.secondary, shape = CircleShape)
         .defaultMinSize(40.dp, 40.dp)
         .padding(horizontal = 8.dp),
         contentAlignment = Alignment.Center

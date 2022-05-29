@@ -49,7 +49,7 @@ class MainViewModel: ViewModel() {
     }
 
     fun switchMatrixSign(row: Int, col: Int) {
-        val newTerm = inequalities.value[row].terms[col].apply { sign.nextAddSign() }
+        val newTerm = inequalities.value[row].terms[col].run { copy(sign = sign.nextAddSign()) }
         setInequalityTerm(row, col, newTerm)
     }
 
@@ -91,7 +91,7 @@ class MainViewModel: ViewModel() {
     private fun setInequalityTerm(row: Int, col: Int, newTerm: TermModel) =
         updateInequalities(
             inequalities.value.toMutableList().apply {
-                set(row, get(row).copy(terms = get(row).terms.also { terms -> terms[col] = newTerm }))
+                set(row, get(row).copy(terms = get(row).terms.toMutableList().also { terms -> terms[col] = newTerm }))
             }
         )
 
@@ -116,5 +116,9 @@ class MainViewModel: ViewModel() {
 
     private fun updateInequalities(inequalities: List<InequalityRowModel>) {
         mutableInequalities.value = inequalities.toMutableList()
+    }
+
+    fun solve() {
+
     }
 }
