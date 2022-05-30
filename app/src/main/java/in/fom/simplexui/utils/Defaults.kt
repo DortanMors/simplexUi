@@ -14,11 +14,15 @@ object Defaults {
     const val LESS = "<"
     const val EQUALS = "="
     const val GREATER = ">"
+    const val MIN = "Min"
+    const val MAX = "Max"
 
     const val defaultIndex = 0
     const val defaultAddSign = PLUS
-    fun defaultInequalitySign() = SIGN.toSymbol()
 
+    fun defaultLog() = ""
+    fun defaultInequalitySign() = SIGN.toSymbol()
+    fun defaultSolveMode() = MIN
     fun defaultFunctionTerms() = mutableListOf(TermModel())
     fun defaultInequalities() = mutableListOf(InequalityRowModel())
 

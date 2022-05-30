@@ -7,14 +7,18 @@ import `in`.fom.simplexui.ui.view.AlgebraSign
 import `in`.fom.simplexui.ui.view.Term
 import `in`.fom.simplexui.utils.Defaults.defaultFunctionTerms
 import `in`.fom.simplexui.utils.Defaults.defaultInequalities
+import `in`.fom.simplexui.utils.Defaults.defaultLog
+import `in`.fom.simplexui.utils.Defaults.defaultSolveMode
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -77,6 +81,8 @@ fun SimplexView(viewModel: MainViewModel = viewModel()) {
 @Composable
 fun BoundsMatrixView(viewModel: MainViewModel = viewModel()) {
     val matrix by viewModel.inequalities.collectAsState(defaultInequalities())
+    val solveMode by viewModel.solveMode.collectAsState(defaultSolveMode())
+    val log by viewModel.log.collectAsState(defaultLog())
     Box {
         LazyColumn {
             itemsIndexed(matrix) { rowIndex: Int, line: InequalityRowModel ->
@@ -110,8 +116,19 @@ fun BoundsMatrixView(viewModel: MainViewModel = viewModel()) {
                 }
             }
             item {
-                Button(onClick = { viewModel.solve() }, Modifier.fillMaxWidth()) {
-                    Text(stringResource(R.string.solve))
+                Row(horizontalArrangement = Arrangement.SpaceAround) {
+                    Button(modifier = Modifier.weight(3f), onClick = { viewModel.solve() }) {
+                        Text(stringResource(R.string.solve))
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(modifier = Modifier.weight(1f), onClick = { viewModel.switchModeClicked() }) {
+                        Text(solveMode)
+                    }
+                }
+            }
+            item {
+                Box(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                    Text(text = log)
                 }
             }
         }
