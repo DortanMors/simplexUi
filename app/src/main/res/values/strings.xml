@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">SimplexUi</string>
+    <string name="app_name" translatable="false">SimpleXui</string>
     <string name="function" translatable="false">f(X̂, Ĉ) =</string>
     <string name="plus_arg">+ arg</string>
     <string name="minus_arg">- arg</string>
