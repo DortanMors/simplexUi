@@ -119,28 +119,36 @@ class MainViewModel: ViewModel() {
                 val signs: MutableList<Sign> = ArrayList()
                 val bounds: MutableList<Double> = ArrayList()
 
-                functionTerms.value.forEach { term ->
-                    prices += term.run { value.toDouble() * term.sign.toNumericSign() }
-                }
+                try {
+                    functionTerms.value.forEach { term ->
+                        prices += term.run { value.toDouble() * term.sign.toNumericSign() }
+                    }
 
-                inequalities.value.forEach { row ->
-                    matrix += row.terms.map { term -> term.run { value.toDouble() * term.sign.toNumericSign() } }
-                    bounds += row.run { bound.toDouble() * boundSign.toNumericSign() }
-                    signs += row.sign.toInequalitySign()
-                }
+                    inequalities.value.forEach { row ->
+                        matrix += row.terms.map { term -> term.run { value.toDouble() * term.sign.toNumericSign() } }
+                        bounds += row.run { bound.toDouble() * boundSign.toNumericSign() }
+                        signs += row.sign.toInequalitySign()
+                    }
 
-                val simplex = Simplex(matrix, prices, signs, bounds)
-                val logBuilder = ByteArrayOutputStream()
-                simplex.output = logBuilder
-                if (solveMode.value == MAX)
-                    simplex.findMax()
-                else
-                    simplex.findMin()
-                simplex.solve()
-                updateLog(logBuilder.toByteArray().toString(StandardCharsets.UTF_8))
+                    val simplex = Simplex(matrix, prices, signs, bounds)
+                    val logBuilder = ByteArrayOutputStream()
+                    simplex.output = logBuilder
+                    if (solveMode.value == MAX)
+                        simplex.findMax()
+                    else
+                        simplex.findMin()
+                    simplex.solve()
+                    updateLog(logBuilder.toByteArray().toString(StandardCharsets.UTF_8))
+                } catch (th: Throwable) {
+                    logError(th)
+                }
             }
         else
             updateLog(log.value)
+    }
+
+    private fun logError(th: Throwable) {
+        updateLog(th.toString())
     }
 
     private fun updateLog(log: String) {
