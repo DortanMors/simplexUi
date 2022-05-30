@@ -8,6 +8,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
@@ -15,6 +16,7 @@ import androidx.compose.material.primarySurface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 
@@ -36,9 +38,10 @@ fun VariableX(index: Int) {
 @Composable
 fun StringField(value: String, onEdit: (String) -> Unit) {
     BasicTextField(
-        value,
-        onEdit,
-        Modifier
+        value = value,
+        onValueChange = onEdit,
+        keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+        modifier = Modifier
             .width(IntrinsicSize.Min)
             .defaultMinSize(minWidth = 8.dp)
             .padding(horizontal = 8.dp, vertical = 8.dp)
