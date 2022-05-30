@@ -13,10 +13,12 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -125,7 +127,9 @@ fun BoundsMatrixView(viewModel: MainViewModel = viewModel()) {
                 }
             }
             item {
-                Text(text = log)
+                Box(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                    Text(text = log)
+                }
             }
         }
     }
